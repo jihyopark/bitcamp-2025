@@ -1,0 +1,34 @@
+body {
+    background-color: white;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+  }
+  #videoContainer {
+    width: 640px;
+    height: 480px;
+    border: 1px solid black;
+    margin-bottom: 10px;
+  }
+  #videoElement {
+    width: 100%;
+    height: 100%;
+  }
+  #transcriptionControls {
+    margin-bottom: 10px;
+  }
+  #transcriptionBox {
+    width: 80%;
+    padding: 15px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+    margin-bottom: 10px; /* Reduced margin for copy button */
+    height: 150px;
+    overflow-y: auto;
+  }
+  #copyButton {
+    padding: 8px 15px;
+    cursor: pointer;
+  }
