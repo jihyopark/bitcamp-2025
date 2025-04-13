@@ -1,4 +1,6 @@
-// import { API_KEY } from './keys.js';
+import { API_KEY } from './keys.js';
+// require('dotenv').config()
+// const API_KEY = process.env.API_KEY;
 const video = document.getElementById('videoElement');
 const startButton = document.getElementById('startButton');
 const finishButton = document.getElementById('finishButton');
@@ -43,7 +45,6 @@ startButton.addEventListener('click', () => {
         transcribeEquationFromVideo(video).then( res => {
             newText = res;
             console.log(newText);
-            // TODO tts newText
             if (newText && (newText !== "No equation found.")) {
                 currentTranscription = newText;
                 // currentTranscription += newText + "\n";
@@ -62,10 +63,12 @@ startButton.addEventListener('click', () => {
 ttsButton.addEventListener('click', () => {
     if (isTranscribing && !isListening) {
         ttsButton.style.backgroundColor = "#d0ffd0";
+        ttsButton.innerText = "Stop Text-to-Speech";
         isListening = true;
     }
     else {
         isListening = false;
+        ttsButton.innerText = "Start Text-to-Speech";
         ttsButton.style.backgroundColor = "#f0f0f0";
     }
 });
@@ -109,7 +112,7 @@ async function transcribeEquationFromVideo(videoElement) {
     ascii charactors.";
   
     try {
-        const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + API_KEY, {
+        const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + API_KEY, {
             method: "POST",
             headers: {
             "Content-Type": "application/json"
