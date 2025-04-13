@@ -1,5 +1,4 @@
-const API_KEY = "AIzaSyCu8lb-Mjm2Y_WPGVHmlAO0yAcc2bBAl0A"; // api key
-
+import { API_KEY } from './keys.js';
 const video = document.getElementById('videoElement');
 const startButton = document.getElementById('startButton');
 const finishButton = document.getElementById('finishButton');
@@ -46,16 +45,17 @@ startButton.addEventListener('click', () => {
             console.log(newText);
             // TODO tts newText
             if (newText && (newText !== "No equation found.")) {
-                currentTranscription += newText + "\n";
+                currentTranscription = newText;
+                // currentTranscription += newText + "\n";
                 transcriptionBox.value = currentTranscription;
                 transcriptionBox.scrollTop = transcriptionBox.scrollHeight;
 
-                if (!ttsButton.disabled) {
+                if (isListening) {
                     textToSpeech(newText); // Replace with your TTS function
                 }
             }
         });
-    }, 5000);
+    }, 1000);
     }
 });
 
@@ -80,7 +80,7 @@ finishButton.addEventListener('click', () => {
 
     clearInterval(transcriptionInterval);
     console.log("Transcription finished.");
-    currentTranscription += "[TRANSCRIPTION FINISHED]\n";
+    // currentTranscription += "[TRANSCRIPTION FINISHED]\n";
     transcriptionBox.value = currentTranscription;
     }
 });
@@ -104,8 +104,8 @@ async function transcribeEquationFromVideo(videoElement) {
     const base64Image = canvas.toDataURL('image/png').split(',')[1];
   
     // const prompt = "The following image contains a mathematical equation. Please transcribe this equation into LaTeX code.";
-    const prompt = "If the following image contains mathematical text, please transcribe into LaTeX code without $ or tick. \
-    If not, please say 'No equation found'. Do not repeat if previously given. ONLY GIVE ME LATEX CODE. Result must only contain\
+    const prompt = "Please transcribe text in the BLACKBOARD in the following image into LaTeX code without $ or tick. \
+    ONLY GIVE ME LATEX CODE. If blackboard is black, return 'No equation found.', Result must only contain\
     ascii charactors.";
   
     try {

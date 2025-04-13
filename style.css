@@ -11,7 +11,6 @@ body {
 #videoContainer {
   width: 640px;
   height: 480px;
-  /* border: 1px solid black; */
   margin-bottom: 10px;
 }
 #videoElement {
@@ -29,24 +28,15 @@ button {
   margin: 10px;
   width: 170px;
   background-color: #f0f0f0;
-  height: 40px;
+  height: 35px;
 }
-/* #transcriptionControls {
-  padding:10px
-} */
 #transcriptionBox {
   border: 2px solid gray;
   width: 640px;
   padding: 15px;
   box-sizing: border-box;
   margin: 10px;
-  height: 150px;
+  height: 130px;
   overflow-y: auto;
   border-radius: 8px;
 }
-/* #copyButton {
-  border-radius: 8px;
-  padding: 8px 15px;
-  cursor: pointer;
-  border: 1px solid #ccc;
-} */
