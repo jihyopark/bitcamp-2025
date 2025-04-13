@@ -10,13 +10,14 @@
   </div>
 
   <div id="transcriptionControls">
-    <button id="startButton">Start Transcription</button>
-    <button id="finishButton" disabled>Finish Transcription</button>
+    <button type="button" id="startButton">Start Transcription</button>
+    <button type="button" id="finishButton" disabled>Finish Transcription</button>
+    <button type="button" id="ttsButton" disabled>Text-to-speech</button>
   </div>
 
   <textarea id="transcriptionBox" placeholder="Transcription will appear here..." readonly></textarea>
 
-  <button id="copyButton">Copy Transcription</button>
+  <button type="button" id="copyButton">Copy Transcription</button>
 
   <script type="module" src="script.js"></script>
 </body>

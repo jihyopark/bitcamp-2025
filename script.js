@@ -1,8 +1,4 @@
-import { GoogleGenerativeAI } from "@google-ai/generativelanguage";
-
 const API_KEY = "AIzaSyCu8lb-Mjm2Y_WPGVHmlAO0yAcc2bBAl0A"; // api key
-const genAI = new GoogleGenerativeAI(API_KEY);
-const model = genAI.GenerativeModel({ model: "gemini-pro-vision" });
 
 const video = document.getElementById('videoElement');
 const startButton = document.getElementById('startButton');
@@ -11,6 +7,7 @@ const transcriptionBox = document.getElementById('transcriptionBox');
 const copyButton = document.getElementById('copyButton');
 
 let isTranscribing = false;
+let isListening = false;
 let transcriptionInterval;
 let currentTranscription = "";
 
@@ -36,18 +33,40 @@ startButton.addEventListener('click', () => {
     isTranscribing = true;
     startButton.disabled = true;
     finishButton.disabled = false;
+    ttsButton.disabled = false; // enable TTS button during transcription
     transcriptionBox.value = "";
     currentTranscription = "";
 
-    // **IMPORTANT:** Placeholder for actual API integration.
     console.log("Transcription started.");
-
+    
     transcriptionInterval = setInterval(() => {
-        const newText = `[TRANSCRIBING] New text line ${Math.floor(Math.random() * 100)}. `;
-        currentTranscription += newText;
-        transcriptionBox.value = currentTranscription;
-        transcriptionBox.scrollTop = transcriptionBox.scrollHeight;
-    }, 1500);
+        let newText;
+        transcribeEquationFromVideo(video).then( res => {
+            newText = res;
+            console.log(newText);
+            // TODO tts newText
+            if (newText && (newText !== "No equation found.")) {
+                currentTranscription += newText + "\n";
+                transcriptionBox.value = currentTranscription;
+                transcriptionBox.scrollTop = transcriptionBox.scrollHeight;
+
+                if (!ttsButton.disabled) {
+                    textToSpeech(newText); // Replace with your TTS function
+                }
+            }
+        });
+    }, 5000);
+    }
+});
+
+ttsButton.addEventListener('click', () => {
+    if (isTranscribing && !isListening) {
+        ttsButton.style.backgroundColor = "#d0ffd0";
+        isListening = true;
+    }
+    else {
+        isListening = false;
+        ttsButton.style.backgroundColor = "#f0f0f0";
     }
 });
 
@@ -56,8 +75,9 @@ finishButton.addEventListener('click', () => {
     isTranscribing = false;
     startButton.disabled = false;
     finishButton.disabled = true;
+    ttsButton.disabled = true; // disable TTS button after transcription
+    isListening = false;
 
-    // **IMPORTANT:** Placeholder for stopping API call.
     clearInterval(transcriptionInterval);
     console.log("Transcription finished.");
     currentTranscription += "[TRANSCRIPTION FINISHED]\n";
@@ -83,107 +103,120 @@ async function transcribeEquationFromVideo(videoElement) {
     // Convert to base64 (remove data URL prefix)
     const base64Image = canvas.toDataURL('image/png').split(',')[1];
   
-    const prompt = "The following image contains a mathematical equation. Please transcribe this equation into LaTeX code.";
+    // const prompt = "The following image contains a mathematical equation. Please transcribe this equation into LaTeX code.";
+    const prompt = "If the following image contains mathematical text, please transcribe into LaTeX code without $ or tick. \
+    If not, please say 'No equation found'. Do not repeat if previously given. ONLY GIVE ME LATEX CODE. Result must only contain\
+    ascii charactors.";
   
     try {
-    //   const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=YOUR_API_KEY", {
-    //     method: "POST",
-    //     headers: {
-    //       "Content-Type": "application/json"
-    //     },
-    //     body: JSON.stringify({
-    //       contents: [
-    //         {
-    //           parts: [
-    //             {
-    //               inlineData: {
-    //                 mimeType: "image/png",
-    //                 data: base64Image
-    //               }
-    //             },
-    //             {
-    //               text: prompt
-    //             }
-    //           ]
-    //         }
-    //       ]
-    //     })
-    //   });
-
-    const result = await model.generateContent({
-      contents: [
-        {
-          parts: [
-            {
-              inlineData: {
-                mimeType: "image/png", // Adjust if your image is a different type (e.g., image/jpeg)
-                data: base64Image,
-              },
+        const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + API_KEY, {
+            method: "POST",
+            headers: {
+            "Content-Type": "application/json"
             },
-            { text: prompt },
-          ],
-        },
-      ],
-    });
+            body: JSON.stringify({
+                contents: [
+                {
+                parts: [
+                    {
+                    inlineData: {
+                        mimeType: "image/png",
+                        data: base64Image
+                    }
+                    },
+                    {
+                    text: prompt
+                    }
+                ]
+                }
+            ]
+            })
+        });
   
-    //   const result = await response.json();
-      const latex = result.candidates?.[0]?.content?.parts?.[0]?.text;
-  
-      if (latex) {
-        console.log("LaTeX:", latex);
-        transcriptionBox.value = latex;
-      } else {
-        transcriptionBox.value = "No LaTeX found in response.";
-      }
+        const result = await response.json();
+        const latex = result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+        if (latex) {
+            console.log("LaTeX Transcription:", latex);
+            return latex;
+        } else {
+            console.log("No LaTeX transcription found in the response.");
+            return null;
+        }
+
     } catch (error) {
-      console.error("Error:", error);
-      transcriptionBox.value = "Error during transcription.";
+        console.error("Error transcribing image:", error);
+        return null;
     }
-  }
+}
+
+function textToSpeech(text) {
+    if ('speechSynthesis' in window) {
+        const processedText = processTextForSpeech(text);
+        const utterance = new SpeechSynthesisUtterance(processedText);
+    
+        // speech parameters
+        utterance.rate = 0.5;   // Speech rate (0.1 to 10)
+        utterance.pitch = 1;    // Speech pitch (0 to 2)
+        utterance.volume = 1;   // Speech volume (0 to 1)
+        utterance.voice = speechSynthesis.getVoices().find(voice => voice.lang === 'en-US'); // Example: Select an English US voice
+    
+        speechSynthesis.speak(utterance);
+    } else {
+        console.error("Speech synthesis is not supported in this browser.");
+    }
+}
+
+function describeSpecialCharacter(char) {
+    switch (char) {
+        case '.': return "dot";
+        case ',': return "comma";
+        case '!': return "exclamation mark";
+        case '?': return "question mark";
+        case '@': return "at";
+        case '#': return "hash";
+        case '$': return "dollar";
+        case '%': return "percent";
+        case '&': return "ampersand";
+        case '*': return "asterisk";
+        case '(': return "open parenthesis";
+        case ')': return "close parenthesis";
+        case '-': return "hyphen";
+        case '_': return "underscore";
+        case '+': return "plus";
+        case '=': return "equals";
+        case '/': return "slash";
+        case '\\': return "backslash";
+        case '<': return "less than";
+        case '>': return "greater than";
+        case '{': return "open brace";
+        case '}': return "close brace";
+        case '[': return "open bracket";
+        case ']': return "close bracket";
+        case ':': return "colon";
+        case ';': return "semicolon";
+        case '"': return "quotation mark";
+        case "'": return "apostrophe";
+        case '`': return "backtick";
+        case '~': return "tilde";
+        case '|': return "pipe";
+        case '^': return "caret";
+        // Add more cases as needed
+        default: return char; // If no specific description, just say the character
+    }
+}
+
+function processTextForSpeech(text) {
+    let output = "";
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+      if (/[a-zA-Z0-9\s]/.test(char)) { // If it's an alphanumeric character or whitespace
+        output += char;
+      } else {
+        output += " " + describeSpecialCharacter(char) + " "; // Add space for separation
+      }
+    }
+    console.log("Processed text for speech:", output);
+    return output.trim();
+}
   
-
-// import { GoogleGenerativeAI } from "@google-ai/generativelanguage";
-// import fs from 'fs'; // For reading the image file
-
-// // Replace with your actual API key
-// const API_KEY = "YOUR_API_KEY";
-// const genAI = new GoogleGenerativeAI(API_KEY);
-// const model = genAI.GenerativeModel({ model: "gemini-pro-vision" });
-
-// async function transcribeEquationImage(imagePath) {
-//   try {
-//     const imageFile = fs.readFileSync(imagePath);
-//     const base64Image = Buffer.from(imageFile).toString('base64');
-
-//     const prompt = "The following image contains a mathematical equation. Please transcribe this equation into LaTeX code.";
-
-//     const result = await model.generateContent({
-//       contents: [
-//         {
-//           parts: [
-//             {
-//               inlineData: {
-//                 mimeType: "image/png", // Adjust if your image is a different type (e.g., image/jpeg)
-//                 data: base64Image,
-//               },
-//             },
-//             { text: prompt },
-//           ],
-//         },
-//       ],
-//     });
-
-//     const responseText = result.response?.candidates?.[0]?.content?.parts?.[0]?.text;
-
-//     if (responseText) {
-//       console.log("LaTeX Transcription:", responseText);
-//       return responseText;
-//     } else {
-//       console.log("No LaTeX transcription found in the response.");
-//       return null;
-//     }
-//   } catch (error) {
-//     console.error("Error transcribing image:", error);
-//     return null;
-//   }
-// }
