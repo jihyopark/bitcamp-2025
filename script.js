@@ -1,4 +1,4 @@
-import { API_KEY } from './keys.js';
+// import { API_KEY } from './keys.js';
 const video = document.getElementById('videoElement');
 const startButton = document.getElementById('startButton');
 const finishButton = document.getElementById('finishButton');
