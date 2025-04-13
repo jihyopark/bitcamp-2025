@@ -1,4 +1,5 @@
-#μTeX: A LaTeX Transcription Tool
+# μTeX: A LaTeX Transcription Tool
+Pronounced Mew-tech.
 ## Inspiration
 μTeX is my two loves of my life combined: chalkboard and LaTeX. However, that does not mean I am the fastest LaTeX writer. I always aspired to be that student who writes math notes in LaTeX, but my slow typing (66 wpm: embarrassing for a CS major) limits my dreams. I needed some external help for accurate LaTeX math notes.
 Thinking about my love for LaTeX, I remembered an essay I wrote for an English class about LaTeX. I wrote about how my professor refuses to give LaTeX source code for our homework, and why he should start doing so. One thing I learned at that time was LaTeX's accessibility.
